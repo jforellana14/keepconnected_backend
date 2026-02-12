@@ -24,6 +24,50 @@ DEV_MODE = os.getenv("DEV_MODE", "0") == "1"
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+from pydantic import BaseModel, EmailStr
+import httpx
+
+class CheckoutRequest(BaseModel):
+    price_id: str
+    customer_email: EmailStr
+    success_url: str = "https://keepconnected.io/success"
+    cancel_url: str = "https://keepconnected.io/cancel"
+    description: str = "KeepConnected - Subscription"
+
+RECURRENTE_API_KEY = os.getenv("RECURRENTE_API_KEY")
+
+@app.post("/checkout")
+async def create_checkout(data: CheckoutRequest):
+    if not RECURRENTE_API_KEY:
+        raise HTTPException(status_code=500, detail="Missing RECURRENTE_API_KEY")
+
+    headers = {"Authorization": f"Bearer {RECURRENTE_API_KEY}"}
+
+    payload = {
+        "price_id": data.price_id,
+        "customer_email": data.customer_email,
+        "success_url": data.success_url,
+        "cancel_url": data.cancel_url,
+        "description": data.description
+    }
+
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            "https://api.recurrente.com/checkout",
+            json=payload,
+            headers=headers
+        )
+
+    try:
+        resp = r.json()
+    except:
+        raise HTTPException(status_code=502, detail=f"Recurrente returned non-JSON | HTTP {r.status_code}")
+
+    if r.status_code != 200:
+        raise HTTPException(status_code=r.status_code, detail=resp)
+
+    return {"checkout_url": resp.get("url")}
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def get_db():
