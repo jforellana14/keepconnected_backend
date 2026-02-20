@@ -1,0 +1,1 @@
+﻿# Placeholder: auto-update logic

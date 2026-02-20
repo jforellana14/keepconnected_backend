@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual env
+venv/
+ENV/
+env/
+
+# IDE stuff
+.vscode/
+.idea/
+
+# Local databases
+*.db
+
+# Environment variables
+.env
+
+# Cache
+*.log
+.cache/
+
+# FastAPI reload files
+*.pid
