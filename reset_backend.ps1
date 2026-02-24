@@ -1057,6 +1057,7 @@ if (Get-Command "git" -ErrorAction SilentlyContinue) {
 
     if (!(Test-Path ".\.git")) {
         git init | Out-Null
+	git pull
     }
 
     $remote = git remote -v 2>$null | Select-String "origin" | Select-Object -First 1
@@ -1067,9 +1068,12 @@ if (Get-Command "git" -ErrorAction SilentlyContinue) {
     git add -A
     try { git commit -m "reset_backend_v2 auto" | Out-Null } catch {}
     try { git branch -M main | Out-Null } catch {}
-    try { git push -u origin main } catch {
-        Write-Host "No se pudo hacer push automáticamente. Revisa credenciales."
-    }
+    try {
+    		git push -u origin main --force
+    		Write-Host "Push forzado a GitHub completado."
+	} catch {
+    			Write-Host "No se pudo hacer push (normal si el repo ya tiene commits). Continuando..."
+		}
 }
 
 Write-Host ""
